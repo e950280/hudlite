@@ -1,7 +1,7 @@
 {
   "name": "hudlite",
-  "version": "0.1.0",
-  "description": "Minimal claude-hud for Claude Code: every claude-hud line without themes, plus clickable 5h / 7d / context gauges and a cache + session cost row",
+  "version": "0.2.0",
+  "description": "Lean claude-hud: clickable 5h / 7d / context, cache and cost rows. Multilingual (English, 繁中, 简中, 日本語...)",
   "author": {
     "name": "that_handsome",
     "url": "https://github.com/e950280"
@@ -43,12 +43,19 @@
     "language": {
       "type": "string",
       "title": "Language",
-      "description": "The HUD's language: auto follows claude-hud's own language setting; /hud lang switches it live",
+      "description": "The HUD's language (English, 繁體中文, 简体中文, 日本語, 한국어, Español, Français, Deutsch, Português, Русский); auto follows claude-hud's own setting. /hud lang switches it live",
       "options": [
         "auto",
         "en",
         "zh-Hant",
-        "zh-Hans"
+        "zh-Hans",
+        "ja",
+        "ko",
+        "es",
+        "fr",
+        "de",
+        "pt-BR",
+        "ru"
       ],
       "default": "auto"
     },

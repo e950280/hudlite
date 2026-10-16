@@ -21,6 +21,7 @@ import {
 } from '../hooks/extras'
 import { setLanguage } from '../hooks/hud/i18n/index'
 import { MESSAGES, m, money } from '../hooks/i18n'
+import { LANGUAGE_NAMES, parseLanguage, TABLES } from '../hooks/lite-i18n'
 import { rcSpans } from '../hooks/remote'
 import { currentScoped, usageCacheOf } from '../hooks/stdin'
 import { cleanSummary } from '../hooks/summary'
@@ -849,7 +850,26 @@ test('/hud lang switches hudlite and claude-hud, and writes the language row', a
   text = await shown()
   expect(text).toContain('💾 快取 命中')
   expect(text).toContain('前有效')
+  const ja = await $.command.run({ ...COMMAND, args: 'lang ja' })
+  expect('text' in ja && ja.text).toBe('言語：日本語')
+  for (let i = 0; i < 5; i++) await clock.settle()
+  text = await shown()
+  expect(text).toContain('🧠 コンテキスト')
+  expect(text).toContain('💾 キャッシュ ヒット')
+  await $.command.run({ ...COMMAND, args: 'lang zh-TW' })
   const bad = await $.command.run({ ...COMMAND, args: 'lang xx' })
   expect('text' in bad && bad.text).toContain('xx')
-  expect(rows).toEqual([['hudlite.language', 'en'], ['hudlite.language', 'zh-Hant']])
+  expect(rows).toEqual([['hudlite.language', 'en'], ['hudlite.language', 'zh-Hant'], ['hudlite.language', 'ja'], ['hudlite.language', 'zh-Hant']])
+})
+
+test('every hudlite language has every string, with the same placeholders', async () => {
+  const holes = (text: string) => (text.match(/\{\w+\}/g) ?? []).sort().join(',')
+  expect(Object.keys(TABLES).length).toBe(10)
+  for (const [lang, table] of Object.entries(TABLES)) {
+    for (const [key, text] of Object.entries(TABLES.en)) {
+      expect(`${lang}.${key}:${holes(table[key as keyof typeof TABLES.en] ?? '')}`).toBe(`${lang}.${key}:${holes(text)}`)
+    }
+  }
+  for (const code of ['en', 'zh-TW', 'zh-CN', 'ja', 'ko', 'es', 'fr', 'de', 'pt-BR', 'ru', 'auto']) expect(parseLanguage(code)).not.toBe(null)
+  expect(Object.keys(LANGUAGE_NAMES).length).toBe(11)
 })

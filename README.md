@@ -2,7 +2,7 @@
 
 **繁體中文** · [简体中文](README.zh-CN.md) · [English](README.en.md)
 
-Claude Code 的極簡狀態列 HUD（mod）。
+Claude Code 的極簡狀態列 HUD（mod）。支援 10 種語言：English、繁體中文、简体中文、日本語、한국어、Español、Français、Deutsch、Português (Brasil)、Русский。
 
 hudlite 是 [hoobnn 的 hud mod](https://github.com/hoobnn/hoobnn-agent-mods/tree/main/claude-code/hud) 的精簡版；那個 mod 又是把 [claude-hud](https://github.com/jarrodwatts/claude-hud) 改寫成 Claude Code mod。hudlite 的程式碼絕大部分來自這兩個專案（兩者皆為 MIT 授權），hudlite 只做了下面列出的改動。
 
@@ -71,7 +71,7 @@ claude plugin install hudlite@hudlite
 | `/hud` | 顯示／隱藏（切換） |
 | `/hud off`、`/hud on` | 隱藏、顯示 |
 | `/hud above`、`/hud below` | 放到輸入框上方／下方（原本 status line 的位置） |
-| `/hud lang en`、`zh-TW`、`zh-CN`、`auto` | 切換語言（English／繁體中文／简体中文／跟 claude-hud 設定）；不帶參數顯示目前語言 |
+| `/hud lang <語言>` | 切換語言：`en`、`zh-TW`、`zh-CN`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`，或 `auto`（跟 claude-hud 設定）；不帶參數顯示目前語言 |
 | `/hud detail` | 開關詳細面板（工具耗時、最近幾輪、子代理、待辦、花費） |
 
 輸入框底欄的「HUD」按鈕等同 `/hud`。開關、位置與語言會寫回 `/config`，下次沿用。
@@ -80,7 +80,7 @@ claude plugin install hudlite@hudlite
 
 在 `/config` 修改，或寫在 `~/.claude/settings.json` 的 `pluginConfigs`。與 hud mod 相同（扣掉 `theme`、`showMascot`）：`visible`、`footerButton`、`position`、`language`、`contextAlerts`、`usageAlerts`、`showForecast`、`dailyBudgetUsd`、`showHistory`、`summaryEveryTurns`、`compactWarnPercent`、`coldCacheTokens`、`turnGrowthTokens`、`gitDirtyWarn`、`gitAheadWarn`、`showAgents`、`notifyAfterSeconds`、`notifySound`、`extraCmd`、`debug`。
 
-**語言**：`language` 設為 `auto`（預設）時，跟著 claude-hud 自己的設定檔（`~/.claude/plugins/claude-hud/config.json` 的 `language`；沒設定就是英文）。設成 `en`、`zh-Hant`、`zh-Hans`，或用 `/hud lang`，claude-hud 那幾行與 hudlite 的兩列會一起切換。
+**語言**：`language` 設為 `auto`（預設）時，跟著 claude-hud 自己的設定檔（`~/.claude/plugins/claude-hud/config.json` 的 `language`；沒設定就是英文）。設成 `en`、`zh-Hant`、`zh-Hans`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`，或用 `/hud lang`，claude-hud 那幾行與 hudlite 的兩列會一起切換。
 
 ## 數字從哪來、準不準
 

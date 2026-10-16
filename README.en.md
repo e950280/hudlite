@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) · [简体中文](README.zh-CN.md) · **English**
 
-A minimal status HUD (mod) for Claude Code.
+A minimal status HUD (mod) for Claude Code, in 10 languages: English, 繁體中文, 简体中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский.
 
 hudlite is a trimmed version of [hoobnn's hud mod](https://github.com/hoobnn/hoobnn-agent-mods/tree/main/claude-code/hud), which ports [claude-hud](https://github.com/jarrodwatts/claude-hud) to a Claude Code mod. Almost all of hudlite's code comes from those two projects (both MIT licensed); hudlite only makes the changes listed below.
 
@@ -71,7 +71,7 @@ If you already have hoobnn's `hud` installed, use one or the other: both registe
 | `/hud` | Show / hide (toggle) |
 | `/hud off`, `/hud on` | Hide, show |
 | `/hud above`, `/hud below` | Above / below the prompt (where the status line sat) |
-| `/hud lang en`, `zh-TW`, `zh-CN`, `auto` | Switch language (English / Traditional Chinese / Simplified Chinese / follow claude-hud's setting); no argument shows the current one |
+| `/hud lang <language>` | Switch language: `en`, `zh-TW`, `zh-CN`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, or `auto` (follow claude-hud's setting); no argument shows the current one |
 | `/hud detail` | Open or close the details pane (tool times, recent turns, subagents, todos, spend) |
 
 The "HUD" button in the prompt footer does what `/hud` does. Visibility, position and language are written back to `/config` and kept for next time.
@@ -80,7 +80,7 @@ The "HUD" button in the prompt footer does what `/hud` does. Visibility, positio
 
 Change them in `/config`, or under `pluginConfigs` in `~/.claude/settings.json`. The same as the hud mod's, without `theme` and `showMascot`: `visible`, `footerButton`, `position`, `language`, `contextAlerts`, `usageAlerts`, `showForecast`, `dailyBudgetUsd`, `showHistory`, `summaryEveryTurns`, `compactWarnPercent`, `coldCacheTokens`, `turnGrowthTokens`, `gitDirtyWarn`, `gitAheadWarn`, `showAgents`, `notifyAfterSeconds`, `notifySound`, `extraCmd`, `debug`.
 
-**Language**: with `language` at `auto` (the default), the HUD follows claude-hud's own config file (`language` in `~/.claude/plugins/claude-hud/config.json`; English when unset). Set it to `en`, `zh-Hant` or `zh-Hans`, or use `/hud lang`, and claude-hud's lines switch together with hudlite's two rows.
+**Language**: with `language` at `auto` (the default), the HUD follows claude-hud's own config file (`language` in `~/.claude/plugins/claude-hud/config.json`; English when unset). Set it to `en`, `zh-Hant`, `zh-Hans`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR` or `ru`, or use `/hud lang`, and claude-hud's lines switch together with hudlite's two rows.
 
 ## Where the numbers come from
 

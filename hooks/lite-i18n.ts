@@ -1,8 +1,10 @@
 // hudlite's own strings (its two rows and `/hud` replies) in the language
-// claude-hud draws in: Traditional or Simplified Chinese, else English.
-import { getCanonicalLanguage, interpolate } from './hud/i18n/index.js'
+// claude-hud draws in: the same ten languages claude-hud speaks.
+import { type CanonicalLanguage, getCanonicalLanguage, interpolate } from './hud/i18n/index.js'
 
-export type LiteLanguage = 'en' | 'zh-Hant' | 'zh-Hans'
+export type LiteLanguage = CanonicalLanguage
+
+const CODES = 'en | zh-TW | zh-CN | ja | ko | es | fr | de | pt-BR | ru | auto'
 
 const EN = {
   context: 'Context',
@@ -26,14 +28,14 @@ const EN = {
   movedAbove: 'Moved above the prompt',
   movedBelow: 'Moved below the prompt',
   langSet: 'Language: {name}',
-  langList: 'Language: {name}. /hud lang en | zh-TW | zh-CN | auto',
-  langUnknown: 'Unknown language "{name}". /hud lang en | zh-TW | zh-CN | auto',
-  description: 'hudlite: /hud shows or hides it (off, on); above, below move it; lang en|zh-TW|zh-CN|auto; detail opens the details pane',
+  langList: `Language: {name}. /hud lang ${CODES}`,
+  langUnknown: `Unknown language "{name}". /hud lang ${CODES}`,
+  description: 'hudlite: /hud shows or hides it (off, on); above, below move it; lang switches the language; detail opens the details pane',
 }
 
 type Key = keyof typeof EN
 
-const TABLES: Record<LiteLanguage, Record<Key, string>> = {
+export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
   en: EN,
   'zh-Hant': {
     context: '上下文',
@@ -57,9 +59,9 @@ const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     movedAbove: '已移到輸入框上方',
     movedBelow: '已移到輸入框下方',
     langSet: '語言：{name}',
-    langList: '語言：{name}。/hud lang en | zh-TW | zh-CN | auto',
-    langUnknown: '不認得「{name}」。/hud lang en | zh-TW | zh-CN | auto',
-    description: 'hudlite：/hud 顯示或隱藏（off、on）；above、below 放到輸入框上方或下方；lang en|zh-TW|zh-CN|auto 切換語言；detail 開啟詳細面板',
+    langList: `語言：{name}。/hud lang ${CODES}`,
+    langUnknown: `不認得「{name}」。/hud lang ${CODES}`,
+    description: 'hudlite：/hud 顯示或隱藏（off、on）；above、below 放到輸入框上方或下方；lang 切換語言；detail 開啟詳細面板',
   },
   'zh-Hans': {
     context: '上下文',
@@ -83,34 +85,233 @@ const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     movedAbove: '已移到输入框上方',
     movedBelow: '已移到输入框下方',
     langSet: '语言：{name}',
-    langList: '语言：{name}。/hud lang en | zh-TW | zh-CN | auto',
-    langUnknown: '不认识「{name}」。/hud lang en | zh-TW | zh-CN | auto',
-    description: 'hudlite：/hud 显示或隐藏（off、on）；above、below 放到输入框上方或下方；lang en|zh-TW|zh-CN|auto 切换语言；detail 打开详情面板',
+    langList: `语言：{name}。/hud lang ${CODES}`,
+    langUnknown: `不认识「{name}」。/hud lang ${CODES}`,
+    description: 'hudlite：/hud 显示或隐藏（off、on）；above、below 放到输入框上方或下方；lang 切换语言；detail 打开详情面板',
+  },
+  ja: {
+    context: 'コンテキスト',
+    cache: 'キャッシュ',
+    hit: 'ヒット {p}',
+    validUntil: '{t} まで有効',
+    expired: '期限切れ',
+    rewrite: '、次のメッセージで {n} を再書き込み',
+    session: 'セッション',
+    input: '入力 {n}',
+    output: '出力 {n}',
+    estimate: 'この端末の Claude Code、API 料金で試算',
+    counting: '集計中…',
+    read: '読み込み {n}',
+    write: '書き込み {n}',
+    written: '{t} に書き込み',
+    lastResponse: '直近の応答',
+    noResponse: 'まだ応答なし',
+    subagents: 'サブエージェント含む',
+    note: '（{s}）',
+    movedAbove: '入力欄の上に移動しました',
+    movedBelow: '入力欄の下に移動しました',
+    langSet: '言語：{name}',
+    langList: `言語：{name}。/hud lang ${CODES}`,
+    langUnknown: `「{name}」は不明な言語です。/hud lang ${CODES}`,
+    description: 'hudlite：/hud で表示・非表示（off、on）；above、below で入力欄の上・下へ；lang で言語切替；detail で詳細パネル',
+  },
+  ko: {
+    context: '컨텍스트',
+    cache: '캐시',
+    hit: '적중 {p}',
+    validUntil: '{t}까지 유효',
+    expired: '만료됨',
+    rewrite: ', 다음 메시지에서 {n} 다시 기록',
+    session: '세션',
+    input: '입력 {n}',
+    output: '출력 {n}',
+    estimate: '이 기기의 Claude Code, API 요금 기준 추정',
+    counting: '집계 중…',
+    read: '읽기 {n}',
+    write: '쓰기 {n}',
+    written: '{t} 기록',
+    lastResponse: '마지막 응답',
+    noResponse: '아직 응답 없음',
+    subagents: '서브에이전트 포함',
+    note: ' ({s})',
+    movedAbove: '입력창 위로 옮겼습니다',
+    movedBelow: '입력창 아래로 옮겼습니다',
+    langSet: '언어: {name}',
+    langList: `언어: {name}. /hud lang ${CODES}`,
+    langUnknown: `알 수 없는 언어 "{name}". /hud lang ${CODES}`,
+    description: 'hudlite: /hud 표시·숨기기(off, on); above, below 입력창 위·아래로; lang 언어 전환; detail 상세 패널',
+  },
+  es: {
+    context: 'Contexto',
+    cache: 'Caché',
+    hit: 'acierto {p}',
+    validUntil: 'válida hasta {t}',
+    expired: 'caducada',
+    rewrite: ', el próximo mensaje reescribe {n}',
+    session: 'Sesión',
+    input: 'entrada {n}',
+    output: 'salida {n}',
+    estimate: 'Claude Code de este equipo, a precios de la API',
+    counting: 'contando…',
+    read: 'lectura {n}',
+    write: 'escritura {n}',
+    written: 'escrita {t}',
+    lastResponse: 'última respuesta',
+    noResponse: 'aún sin respuesta',
+    subagents: 'incluye subagentes',
+    note: ' ({s})',
+    movedAbove: 'Movido encima del prompt',
+    movedBelow: 'Movido debajo del prompt',
+    langSet: 'Idioma: {name}',
+    langList: `Idioma: {name}. /hud lang ${CODES}`,
+    langUnknown: `Idioma desconocido "{name}". /hud lang ${CODES}`,
+    description: 'hudlite: /hud lo muestra u oculta (off, on); above, below lo mueven; lang cambia el idioma; detail abre el panel de detalles',
+  },
+  fr: {
+    context: 'Contexte',
+    cache: 'Cache',
+    hit: 'succès {p}',
+    validUntil: "valide jusqu'à {t}",
+    expired: 'expiré',
+    rewrite: ', le prochain message réécrit {n}',
+    session: 'Session',
+    input: 'entrée {n}',
+    output: 'sortie {n}',
+    estimate: "Claude Code de cette machine, au tarif de l'API",
+    counting: 'calcul…',
+    read: 'lecture {n}',
+    write: 'écriture {n}',
+    written: 'écrit à {t}',
+    lastResponse: 'dernière réponse',
+    noResponse: 'pas encore de réponse',
+    subagents: 'sous-agents inclus',
+    note: ' ({s})',
+    movedAbove: 'Déplacé au-dessus du prompt',
+    movedBelow: 'Déplacé sous le prompt',
+    langSet: 'Langue : {name}',
+    langList: `Langue : {name}. /hud lang ${CODES}`,
+    langUnknown: `Langue inconnue « {name} ». /hud lang ${CODES}`,
+    description: 'hudlite : /hud l’affiche ou le masque (off, on) ; above, below le déplacent ; lang change la langue ; detail ouvre le panneau de détails',
+  },
+  de: {
+    context: 'Kontext',
+    cache: 'Cache',
+    hit: 'Treffer {p}',
+    validUntil: 'gültig bis {t}',
+    expired: 'abgelaufen',
+    rewrite: ', nächste Nachricht schreibt {n} neu',
+    session: 'Sitzung',
+    input: 'Eingabe {n}',
+    output: 'Ausgabe {n}',
+    estimate: 'Claude Code auf diesem Rechner, zu API-Preisen',
+    counting: 'wird gezählt…',
+    read: 'gelesen {n}',
+    write: 'geschrieben {n}',
+    written: 'geschrieben um {t}',
+    lastResponse: 'letzte Antwort',
+    noResponse: 'noch keine Antwort',
+    subagents: 'inkl. Subagenten',
+    note: ' ({s})',
+    movedAbove: 'Über die Eingabe verschoben',
+    movedBelow: 'Unter die Eingabe verschoben',
+    langSet: 'Sprache: {name}',
+    langList: `Sprache: {name}. /hud lang ${CODES}`,
+    langUnknown: `Unbekannte Sprache „{name}“. /hud lang ${CODES}`,
+    description: 'hudlite: /hud ein- oder ausblenden (off, on); above, below verschieben; lang wechselt die Sprache; detail öffnet den Detailbereich',
+  },
+  'pt-BR': {
+    context: 'Contexto',
+    cache: 'Cache',
+    hit: 'acerto {p}',
+    validUntil: 'válido até {t}',
+    expired: 'expirado',
+    rewrite: ', a próxima mensagem regrava {n}',
+    session: 'Sessão',
+    input: 'entrada {n}',
+    output: 'saída {n}',
+    estimate: 'Claude Code desta máquina, a preços da API',
+    counting: 'contando…',
+    read: 'leitura {n}',
+    write: 'gravação {n}',
+    written: 'gravado às {t}',
+    lastResponse: 'última resposta',
+    noResponse: 'ainda sem resposta',
+    subagents: 'inclui subagentes',
+    note: ' ({s})',
+    movedAbove: 'Movido para acima do prompt',
+    movedBelow: 'Movido para abaixo do prompt',
+    langSet: 'Idioma: {name}',
+    langList: `Idioma: {name}. /hud lang ${CODES}`,
+    langUnknown: `Idioma desconhecido "{name}". /hud lang ${CODES}`,
+    description: 'hudlite: /hud mostra ou oculta (off, on); above, below o movem; lang troca o idioma; detail abre o painel de detalhes',
+  },
+  ru: {
+    context: 'Контекст',
+    cache: 'Кэш',
+    hit: 'попадания {p}',
+    validUntil: 'действует до {t}',
+    expired: 'истёк',
+    rewrite: ', следующее сообщение перезапишет {n}',
+    session: 'Сессия',
+    input: 'ввод {n}',
+    output: 'вывод {n}',
+    estimate: 'Claude Code на этом компьютере, по ценам API',
+    counting: 'подсчёт…',
+    read: 'чтение {n}',
+    write: 'запись {n}',
+    written: 'записан в {t}',
+    lastResponse: 'последний ответ',
+    noResponse: 'ответов пока нет',
+    subagents: 'вкл. субагентов',
+    note: ' ({s})',
+    movedAbove: 'Перемещено над полем ввода',
+    movedBelow: 'Перемещено под поле ввода',
+    langSet: 'Язык: {name}',
+    langList: `Язык: {name}. /hud lang ${CODES}`,
+    langUnknown: `Неизвестный язык «{name}». /hud lang ${CODES}`,
+    description: 'hudlite: /hud показать или скрыть (off, on); above, below переместить; lang сменить язык; detail открыть панель деталей',
   },
 }
 
 export function liteLanguage(): LiteLanguage {
   const canon = getCanonicalLanguage()
-  return canon === 'zh-Hant' || canon === 'zh-Hans' ? canon : 'en'
+  return canon in TABLES ? canon : 'en'
 }
 
 export function L(key: Key, params: Record<string, string | number> = {}): string {
   return interpolate(TABLES[liteLanguage()][key], params)
 }
 
+const ALIASES: Record<string, LiteLanguage> = {
+  en: 'en', english: 'en',
+  'zh-tw': 'zh-Hant', 'zh-hant': 'zh-Hant', tw: 'zh-Hant', 繁中: 'zh-Hant', 繁體: 'zh-Hant',
+  'zh-cn': 'zh-Hans', 'zh-hans': 'zh-Hans', cn: 'zh-Hans', 简中: 'zh-Hans', 简体: 'zh-Hans',
+  ja: 'ja', jp: 'ja', 日本語: 'ja',
+  ko: 'ko', kr: 'ko', 한국어: 'ko',
+  es: 'es', español: 'es',
+  fr: 'fr', français: 'fr',
+  de: 'de', deutsch: 'de',
+  'pt-br': 'pt-BR', pt: 'pt-BR', português: 'pt-BR',
+  ru: 'ru', русский: 'ru',
+}
+
 /** `/hud lang`'s argument: a language, `auto` (claude-hud's own setting), or null when unknown. */
 export function parseLanguage(arg: string): LiteLanguage | 'auto' | null {
   const a = arg.toLowerCase()
   if (a === 'auto') return 'auto'
-  if (a === 'en' || a === 'english') return 'en'
-  if (['zh-tw', 'zh-hant', 'tw', 'zht', '繁中', '繁體'].includes(a)) return 'zh-Hant'
-  if (['zh-cn', 'zh-hans', 'cn', 'zhs', '简中', '简体'].includes(a)) return 'zh-Hans'
-  return null
+  return ALIASES[a] ?? null
 }
 
 export const LANGUAGE_NAMES: Record<LiteLanguage | 'auto', string> = {
   en: 'English',
   'zh-Hant': '繁體中文',
   'zh-Hans': '简体中文',
+  ja: '日本語',
+  ko: '한국어',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  'pt-BR': 'Português (Brasil)',
+  ru: 'Русский',
   auto: 'auto (claude-hud)',
 }
