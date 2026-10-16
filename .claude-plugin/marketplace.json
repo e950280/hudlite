@@ -1,0 +1,25 @@
+{
+  "name": "hudlite",
+  "owner": {
+    "name": "that_handsome",
+    "url": "https://github.com/e950280"
+  },
+  "metadata": {
+    "description": "hudlite: a minimal claude-hud mod for Claude Code",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "hudlite",
+      "source": "./",
+      "description": "Minimal claude-hud for Claude Code: every claude-hud line without themes, plus clickable 5h / 7d / context gauges and a cache + session cost row",
+      "version": "0.1.0",
+      "category": "monitoring",
+      "tags": [
+        "hud",
+        "statusline",
+        "mod"
+      ]
+    }
+  ]
+}
