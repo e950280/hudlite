@@ -70,7 +70,7 @@ claude plugin install hudlite@hudlite
 |---|---|
 | `/hud` | 顯示／隱藏（切換） |
 | `/hud off`、`/hud on` | 隱藏、顯示 |
-| `/hud above`、`/hud below` | 放到輸入框上方／下方（原本 status line 的位置） |
+| `/hud above`、`/hud below` | 放到輸入框上方／下方（原本 status line 的位置，預設） |
 | `/hud lang <語言>` | 切換語言：`en`、`zh-TW`、`zh-CN`、`ja`、`ko`、`es`、`fr`、`de`、`pt-BR`、`ru`，或 `auto`（跟 claude-hud 設定）；不帶參數顯示目前語言 |
 | `/hud detail` | 開關詳細面板（工具耗時、最近幾輪、子代理、待辦、花費） |
 

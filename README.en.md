@@ -70,7 +70,7 @@ If you already have hoobnn's `hud` installed, use one or the other: both registe
 |---|---|
 | `/hud` | Show / hide (toggle) |
 | `/hud off`, `/hud on` | Hide, show |
-| `/hud above`, `/hud below` | Above / below the prompt (where the status line sat) |
+| `/hud above`, `/hud below` | Above / below the prompt (below, where the status line sat, is the default) |
 | `/hud lang <language>` | Switch language: `en`, `zh-TW`, `zh-CN`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ru`, or `auto` (follow claude-hud's setting); no argument shows the current one |
 | `/hud detail` | Open or close the details pane (tool times, recent turns, subagents, todos, spend) |
 

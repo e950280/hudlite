@@ -74,7 +74,7 @@ const usageView = atom({ plugin: 'hudlite', key: 'usage' } as const, null as Usa
 const expanded = atom({ plugin: 'hudlite', key: 'expanded' } as const, null as Expanded)
 // Set this session by `/hud above|below`; null: the `position` row's, set in register.
 const positionSet = atom({ plugin: 'hudlite', key: 'position' } as const, null as 'above' | 'below' | null)
-let rowPosition: 'above' | 'below' = 'above'
+let rowPosition: 'above' | 'below' = 'below'
 // The `language` row (or `/hud lang`): overrides claude-hud's own `language` setting; null follows it.
 let languageOverride: LiteLanguage | null = null
 const position = derive([positionSet], set => set ?? rowPosition)

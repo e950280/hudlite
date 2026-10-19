@@ -174,7 +174,7 @@ test('https links ride on spans, file links drop', async () => {
 const SURFACES = ['terminal', 'desktop'] as const
 const HINT = { component: 'PromptHint', props: { isDraft: false, isWorking: false, hint: '? for shortcuts' } } as const
 
-test('band renders claude-hud lines from the session on every surface', async ($, on) => {
+test('band renders claude-hud lines from the session on every surface', { options: { position: 'above' } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
@@ -236,7 +236,7 @@ test('rc label links the bridge session and names attached clients by surface', 
   expect(rcSpans('session_x', [bridge, phone]).at(-1)).toEqual({ text: ' 已连接 手机', color: 'cyan' })
 })
 
-test('rc state follows this session\'s entry in sessions/', async ($, on) => {
+test('rc state follows this session\'s entry in sessions/', { options: { position: 'above' } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
@@ -355,7 +355,7 @@ test('history helpers: sparkline, streak, git counts, summary', async () => {
 
 const DONE = { answer: 'ok', durationMs: 90_000, isAborted: false, turnId: 't1', reason: 'answer' } as const
 
-test('a long turn toasts and chimes, then the summary joins the HUD', { options: { notifyAfterSeconds: 60 } }, async ($, on) => {
+test('a long turn toasts and chimes, then the summary joins the HUD', { options: { position: 'above', notifyAfterSeconds: 60 } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
@@ -444,7 +444,7 @@ test('model-scoped weekly windows come from Claude Code\'s usage cache', async (
   expect(usageCacheOf('not json')).toBe(null)
 })
 
-test('the Fable window shows beside the 5-hour one and toasts at a threshold', { options: { usageAlerts: '30' } }, async ($, on) => {
+test('the Fable window shows beside the 5-hour one and toasts at a threshold', { options: { position: 'above', usageAlerts: '30' } }, async ($, on) => {
   const path = `${HOME}/.claude.json`
   FILES[path] = claudeJson(Date.now(), 33)
   try {
@@ -550,7 +550,7 @@ test('plurals, money and percent spacing follow the language', async () => {
   expect(money(3.2, 'ja')).toBe('$3.20')
 })
 
-test('the band follows claude-hud\'s language', async ($, on) => {
+test('the band follows claude-hud\'s language', { options: { position: 'above' } }, async ($, on) => {
   const config = FILES[`${HOME}/.claude/plugins/claude-hud/config.json`]!
   FILES[`${HOME}/.claude/plugins/claude-hud/config.json`] = config.replace('"zh-Hans"', '"de"')
   try {
@@ -572,7 +572,7 @@ test('the band follows claude-hud\'s language', async ($, on) => {
   }
 })
 
-test('showAgents brings claude-hud\'s subagent lines back', { options: { showAgents: true } }, async ($, on) => {
+test('showAgents brings claude-hud\'s subagent lines back', { options: { position: 'above', showAgents: true } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
@@ -680,7 +680,7 @@ test('a pushed measurement crossing a threshold toasts at once, and only once', 
   expect(toasts).toEqual(['上下文已用 90%，可以考虑 /compact', m('alert.fiveHour', { p: 75 })])
 })
 
-test('a Remote Control delivery marks the bridge client and passes through untouched', async ($, on) => {
+test('a Remote Control delivery marks the bridge client and passes through untouched', { options: { position: 'above' } }, async ($, on) => {
   FILES[SESSION_FILE] = sessionEntry('session_abc')
   try {
     const clock = host(on)
@@ -736,7 +736,7 @@ test('footerButton off leaves the footer to the engine', { options: { footerButt
   await footer.unmount()
 })
 
-test('hudlite rows: gauges, cache and cost, and a click opens the window detail', { options: { language: 'zh-Hant' } }, async ($, on) => {
+test('hudlite rows: gauges, cache and cost, and a click opens the window detail', { options: { position: 'above', language: 'zh-Hant' } }, async ($, on) => {
   const clock = host(on)
   on('prompt.submit', ($, e) => ({ text: e.text }))
   on('ui.render', ($, e) => {
@@ -790,7 +790,7 @@ test('hudlite rows: gauges, cache and cost, and a click opens the window detail'
   await band.unmount()
 })
 
-test('/hud above and below move the band and write the position row', async ($, on) => {
+test('/hud above and below move the band and write the position row', { options: { position: 'above' } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Text } = $.ui.resolve(e)
@@ -819,7 +819,7 @@ test('/hud above and below move the band and write the position row', async ($, 
   expect(rows).toEqual([['hudlite.position', 'below'], ['hudlite.position', 'above']])
 })
 
-test('/hud lang switches hudlite and claude-hud, and writes the language row', async ($, on) => {
+test('/hud lang switches hudlite and claude-hud, and writes the language row', { options: { position: 'above' } }, async ($, on) => {
   const clock = host(on)
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
@@ -872,4 +872,22 @@ test('every hudlite language has every string, with the same placeholders', asyn
   }
   for (const code of ['en', 'zh-TW', 'zh-CN', 'ja', 'ko', 'es', 'fr', 'de', 'pt-BR', 'ru', 'auto']) expect(parseLanguage(code)).not.toBe(null)
   expect(Object.keys(LANGUAGE_NAMES).length).toBe(11)
+})
+
+test('by default the HUD sits below the prompt, not in the band', async ($, on) => {
+  const clock = host(on)
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text key="core">? for shortcuts</Text>
+  })
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+  for (let i = 0; i < 30; i++) await clock.settle()
+  const text = async (mount: Parameters<typeof $.ui.mount>[0]) => {
+    const ui = await $.ui.mount(mount)
+    const shown = (await ui.findAll({ type: 'Text' })).map(t => t.text).join('')
+    await ui.unmount()
+    return shown
+  }
+  expect(await text({ plugin: 'hudlite', surface: 'terminal', ...HINT })).toContain('⏱ 5h')
+  expect(await text({ plugin: 'hudlite', surface: 'terminal', ...BAND })).not.toContain('⏱ 5h')
 })

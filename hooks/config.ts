@@ -42,7 +42,7 @@ export function readConfig(options: PluginOptions): Config {
   return {
     isVisible: flag(options.visible, true),
     hasFooterButton: flag(options.footerButton, true),
-    position: oneOf(options.position, ['above', 'below'], 'above'),
+    position: oneOf(options.position, ['above', 'below'], 'below'),
     theme: THEMES[0]!,
     hasMascot: false,
     extraCmd: text(options.extraCmd),

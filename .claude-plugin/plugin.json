@@ -1,6 +1,6 @@
 {
   "name": "hudlite",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lean claude-hud: clickable 5h / 7d / context, cache and cost rows. Multilingual (English, 繁中, 简中, 日本語...)",
   "author": {
     "name": "that_handsome",
@@ -38,7 +38,7 @@
         "above",
         "below"
       ],
-      "default": "above"
+      "default": "below"
     },
     "language": {
       "type": "string",
