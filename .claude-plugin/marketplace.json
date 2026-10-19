@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "hudlite: a minimal claude-hud mod for Claude Code",
-    "version": "0.2.1"
+    "version": "0.2.2"
   },
   "plugins": [
     {
       "name": "hudlite",
       "source": "./",
       "description": "Lean claude-hud: clickable 5h / 7d / context, cache and cost rows. Multilingual (English, 繁中, 简中, 日本語...)",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "category": "monitoring",
       "tags": [
         "hud",

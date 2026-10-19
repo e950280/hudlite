@@ -82,8 +82,10 @@ function parse(line: string): [string, Rec] | null {
   const write = num(u.cache_creation_input_tokens)
   const w1h = num(u.cache_creation?.ephemeral_1h_input_tokens)
   const w5m = u.cache_creation ? num(u.cache_creation.ephemeral_5m_input_tokens) : write - w1h
-  // One response is written as several entries (one per content block), each with the same usage.
-  const key = `${e.message?.id ?? ''}:${e.requestId ?? ''}` || line
+  // One response is written as several entries (one per content block), each with the same
+  // usage, and a resumed or forked session copies earlier responses into its own file: the
+  // response's identity, not the line, is what counts once. Without one, the line is.
+  const key = e.message?.id || e.requestId ? `${e.message?.id ?? ''}:${e.requestId ?? ''}` : line
   return [key, { t, model, input: num(u.input_tokens), output: num(u.output_tokens), cacheRead: num(u.cache_read_input_tokens), cacheWrite5m: w5m, cacheWrite1h: w1h }]
 }
 
@@ -164,23 +166,29 @@ function sum(recs: Iterable<Rec>, from: number): Totals {
   return t
 }
 
-function* all(): Generator<Rec> {
-  for (const f of feeds.values()) yield* f.recs.values()
+/** The responses of these files, each once: a response copied into several files is one API call. */
+function* distinct(files: Iterable<Feed>): Generator<Rec> {
+  const seen = new Set<string>()
+  for (const f of files) {
+    for (const [key, r] of f.recs) {
+      if (seen.has(key)) continue
+      seen.add(key)
+      yield r
+    }
+  }
 }
 
 /** Everything since `from` (ms), across this machine's sessions. */
 export function windowTotals(from: number): Totals {
-  return sum(all(), from)
+  return sum(distinct(feeds.values()), from)
 }
 
 /** One session: its transcript and its subagents' (`<session>/subagents/*.jsonl`). */
 export function sessionTotals(transcript: string | undefined): Totals | null {
   if (!transcript) return null
   const dir = transcript.replace(/\.jsonl$/, '') + '/'
-  function* recs(): Generator<Rec> {
-    for (const [file, f] of feeds) if (file === transcript || file.startsWith(dir)) yield* f.recs.values()
-  }
-  return sum(recs(), 0)
+  const files = [...feeds].filter(([file]) => file === transcript || file.startsWith(dir)).map(([, f]) => f)
+  return sum(distinct(files), 0)
 }
 
 /** The newest response in the transcript itself (the main thread), or null. */
