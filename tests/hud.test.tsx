@@ -891,3 +891,19 @@ test('by default the HUD sits below the prompt, not in the band', async ($, on) 
   expect(await text({ plugin: 'hudlite', surface: 'terminal', ...HINT })).toContain('⏱ 5h')
   expect(await text({ plugin: 'hudlite', surface: 'terminal', ...BAND })).not.toContain('⏱ 5h')
 })
+
+test('a claude -p run (no HUD to draw) forks no summary', async ($, on) => {
+  const clock = host(on)
+  let forks = 0
+  on('model.fork', () => {
+    forks++
+    return { value: { isAnswered: true, text: 'x', usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } } }
+  })
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: false })
+  for (let i = 0; i < 30; i++) await clock.settle()
+  await $.turn.complete(DONE)
+  await clock.advance(1_000)
+  for (let i = 0; i < 30; i++) await clock.settle()
+  expect(forks).toBe(0)
+})

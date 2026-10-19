@@ -235,6 +235,8 @@ export const register: Register = (on, options) => {
     return config.hasAgents ? lean : { ...lean, display: { ...lean.display, showAgents: false } }
   })
   let isSummarizing = false
+  // Set at session.start: a `claude -p` run or an SDK host draws no HUD, so it gets no summary fork.
+  let isInteractive = false
   // Set in session.start: everything that outlives one dispatch calls the
   // engine through these closures.
   let refresh: () => Promise<void> = async () => {}
@@ -261,6 +263,7 @@ export const register: Register = (on, options) => {
   }
 
   on('session.start', async ($, e, next) => {
+    isInteractive = e.isInteractive
     const io: Io = {
       stat: path => $.fs.stat(path, { resolve: true }),
       read: path => $.fs.read(path),
@@ -654,7 +657,7 @@ export const register: Register = (on, options) => {
       await update($, summary, () => null)
       schedule()
     }
-    if (config.summaryEvery > 0 && !hasPlan && !isSummarizing && (count === 1 || count % config.summaryEvery === 0)) {
+    if (isInteractive && config.summaryEvery > 0 && !hasPlan && !isSummarizing && (count === 1 || count % config.summaryEvery === 0)) {
       isSummarizing = true
       // Not awaited: the fork reads the conversation from the prompt cache while the person reads the answer.
       void $.model
