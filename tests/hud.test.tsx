@@ -294,7 +294,7 @@ test('forecast names the time a window runs out before its reset', async () => {
   expect(addSample(samples, 1, resets + 5 * 3600, now).points).toEqual([[now, 1]])
 })
 
-test('extras fit the width: low parts drop, the row joins the last line when it fits', async () => {
+test('extras fit the width: low parts drop, and the row stands on its own however wide the band', async () => {
   const x = { summary: 'Fix login', exhaust: [], todayUsd: 3, budgetUsd: 10, week: { values: [1, 2, 0, 0, 0, 0, 3], streak: 1 }, git: null, gitDirtyWarn: 20, gitAheadWarn: 5 }
   const text = (row: { text: string }[]) => row.map(s => s.text).join('')
   expect(text(extrasLine(x))).toMatch(/Fix login │ .* │ /)
@@ -313,8 +313,10 @@ test('extras fit the width: low parts drop, the row joins the last line when it 
   expect(text(extrasLine({ ...x, summary: null, budgetUsd: 0, week: null, growth: growthOf(log, 20_000) }))).toMatch(/\+98k ▂▁█$/)
   const rows = [[{ text: 'a' }], [{ text: '◐ Read' }]]
   const extra = [{ text: '✎ x' }]
-  expect(appendExtras(rows, extra, 80)).toEqual([[{ text: 'a' }], [{ text: '◐ Read' }, { text: ' │ ', dimColor: true }, { text: '✎ x' }]])
+  // Never joined to claude-hud's last row: a row that came and went with the width made the band jump.
+  expect(appendExtras(rows, extra, 80)).toEqual([...rows, extra])
   expect(appendExtras(rows, extra, 8)).toEqual([...rows, extra])
+  expect(appendExtras(rows, [], 80)).toEqual(rows)
   expect(dimSeparators([{ text: 'Opus │ proj', color: 'cyan' }])).toEqual([
     { text: 'Opus', color: 'cyan' },
     { text: ' │ ', dimColor: true },

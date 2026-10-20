@@ -295,13 +295,13 @@ export function dimSeparators(row: HudLine): HudLine {
   })
 }
 
-/** The extras row joins claude-hud's last row when both fit in `columns`, else goes under it. */
-export function appendExtras(rows: HudLine[], extra: HudLine, columns: number | undefined): HudLine[] {
+/**
+ * The extras row, always on a row of its own under claude-hud's. (hud joined it to claude-hud's
+ * last row when both fit: near the band's width the row's changing parts, an expiring cache, a
+ * forecast's time, moved it back and forth between one row and two, and the band jumped.)
+ */
+export function appendExtras(rows: HudLine[], extra: HudLine, _columns?: number): HudLine[] {
   if (extra.length === 0) return rows
-  const last = rows[rows.length - 1]
-  if (last && columns && lineWidth(last) + textWidth(SEPARATOR) + lineWidth(extra) <= columns) {
-    return [...rows.slice(0, -1), [...last, { text: SEPARATOR, dimColor: true }, ...extra]]
-  }
   return [...rows, extra]
 }
 
