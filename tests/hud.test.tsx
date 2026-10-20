@@ -23,6 +23,7 @@ import { setLanguage } from '../hooks/hud/i18n/index'
 import { MESSAGES, m, money } from '../hooks/i18n'
 import { LANGUAGE_NAMES, parseLanguage, TABLES } from '../hooks/lite-i18n'
 import { rcSpans } from '../hooks/remote'
+import { AUTO_FETCH_MS } from '../hooks/usage-poll'
 import { currentScoped, usageCacheOf } from '../hooks/stdin'
 import { cleanSummary } from '../hooks/summary'
 import { DEFAULT_CONFIG, mergeConfig } from '../hooks/hud/config'
@@ -906,4 +907,87 @@ test('a claude -p run (no HUD to draw) forks no summary', async ($, on) => {
   await clock.advance(1_000)
   for (let i = 0; i < 30; i++) await clock.settle()
   expect(forks).toBe(0)
+})
+
+const USAGE_BODY = JSON.stringify({
+  five_hour: { utilization: 42, resets_at: '2026-10-02T09:00:00+00:00' },
+  seven_day: { utilization: 51, resets_at: '2026-10-05T17:00:00+00:00' },
+})
+const READING_FILE = `${HOME}/.claude/plugins/claude-hud-mod/hudlite-usage.json`
+
+test('the usage endpoint is fetched at most once per AUTO_FETCH_MS on its own; a press fetches it again', { options: { position: 'above', language: 'zh-Hant' } }, async ($, on) => {
+  const clock = host(on)
+  const fetched: { url: string; auth?: string }[] = []
+  on('session.authorize', () => ({ value: { handle: 'h1', kind: 'bearer' } }))
+  on('http.fetch', ($, e) => {
+    fetched.push({ url: e.url, auth: e.init?.auth })
+    return { value: { status: 200, ok: true, headers: {}, text: USAGE_BODY } }
+  })
+  on('ui.render', ($, e) => {
+    const { Box } = $.ui.resolve(e)
+    return <Box key="core" />
+  })
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+  for (let i = 0; i < 40; i++) await clock.settle()
+  // No reading yet in this session: the button says so.
+  expect(await bandText($)).toContain('↺ 尚未更新')
+  // The first automatic check fetches; the next ones, inside the interval, do not.
+  for (let s = 0; s < AUTO_FETCH_MS / 30_000 - 1; s++) {
+    await clock.advance(30_000)
+    for (let i = 0; i < 20; i++) await clock.settle()
+  }
+  expect(fetched.length).toBe(1)
+  const ui = await $.ui.mount({ plugin: 'hudlite', surface: 'terminal', ...BAND })
+  await ui.press({ key: 'hudlite-refresh' })
+  await ui.unmount()
+  for (let i = 0; i < 20; i++) await clock.settle()
+  await clock.advance(1_000)
+  for (let i = 0; i < 20; i++) await clock.settle()
+  expect(fetched.length).toBe(2)
+  expect(fetched[1]).toEqual({ url: 'https://api.anthropic.com/api/oauth/usage', auth: 'h1' })
+  const shown = await bandText($)
+  // The session's own response said 25%: the fetched 42% is newer.
+  expect(shown).toContain('⏱ 5h ███░░░░░ 42%')
+  expect(shown).toContain('📅 7d ████░░░░ 51%')
+  expect(shown).toMatch(/↺ \d\d:\d\d 更新/)
+})
+
+test('a press whose fetch fails marks the reading failed', { options: { position: 'above', language: 'zh-Hant' } }, async ($, on) => {
+  const clock = host(on)
+  on('session.authorize', () => ({ value: { handle: 'h1', kind: 'bearer' } }))
+  on('http.fetch', () => ({ value: { status: 429, ok: false, headers: {}, text: '' } }))
+  on('ui.render', ($, e) => {
+    const { Box } = $.ui.resolve(e)
+    return <Box key="core" />
+  })
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+  for (let i = 0; i < 40; i++) await clock.settle()
+  const ui = await $.ui.mount({ plugin: 'hudlite', surface: 'terminal', ...BAND })
+  await ui.press({ key: 'hudlite-refresh' })
+  await ui.unmount()
+  await clock.advance(1_000)
+  for (let i = 0; i < 20; i++) await clock.settle()
+  const shown = await bandText($)
+  expect(shown).toContain('⚠ 更新失敗')
+  expect(shown).toContain('⏱ 5h ██░░░░░░ 25%')
+})
+
+test('another session\'s newer reading in the shared file is shown here', { options: { position: 'above', language: 'zh-Hant' } }, async ($, on) => {
+  FILES[READING_FILE] = JSON.stringify({ heard: { fiveHour: { percent: 77, resetsAt: null }, sevenDay: { percent: 66, resetsAt: null }, at: Date.parse('2026-10-02T06:00:50Z'), by: 'other' } })
+  try {
+    const clock = host(on)
+    on('ui.render', ($, e) => {
+      const { Box } = $.ui.resolve(e)
+      return <Box key="core" />
+    })
+    await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+    for (let i = 0; i < 40; i++) await clock.settle()
+    await clock.advance(4_000)
+    for (let i = 0; i < 20; i++) await clock.settle()
+    const shown = await bandText($)
+    expect(shown).toContain('⏱ 5h ██████░░ 77%')
+    expect(shown).toContain('↺ 14:00 更新')
+  } finally {
+    delete FILES[READING_FILE]
+  }
 })

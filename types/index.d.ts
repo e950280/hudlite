@@ -86,6 +86,8 @@ export type UsageView = {
   now: number
   five: WindowView | null
   seven: WindowView | null
+  /** When the 5h / 7d percent was read, and whether it is fresh, older than two polls, or after a failed fetch. */
+  reading: { at: number | null; state: 'ok' | 'stale' | 'failed' }
   /** Weekly windows counted per model (Fable's). */
   scoped: { name: string; percent: number; resetsAt: number | null }[]
   context: { percent: number | null; tokens: number | null; size: number | null }

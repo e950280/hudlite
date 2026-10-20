@@ -35,6 +35,7 @@ import { applyPalette, applyTheme, moodOf } from './themes.js'
 import { transcriptData } from './transcript-feed.js'
 import { hasScanned, lastResponse, scan, sessionTotals, windowTotals } from './ledger.js'
 import { drawUsage } from './usage-rows.js'
+import { afterFetch, AUTO_FETCH_MS, claimed, failed, heard, isAutoDue, mayFetch, newest, parseReading, readingPath, retryAfterMs, stateOf, type UsageReading, USAGE_URL } from './usage-poll.js'
 import { L, LANGUAGE_NAMES, type LiteLanguage, parseLanguage } from './lite-i18n.js'
 
 const lines = atom({ plugin: 'hudlite', key: 'lines' } as const, [] as HudLine[])
@@ -79,9 +80,21 @@ let rowPosition: 'above' | 'below' = 'below'
 let languageOverride: LiteLanguage | null = null
 const position = derive([positionSet], set => set ?? rowPosition)
 
-/** hudlite's rows from this pass's stdin, the last step and the transcript ledger. */
+// The shared usage reading, as this session last read it; null before the first read.
+let polled: UsageReading | null = null
+// A press on the reading: one fetch of the usage endpoint. Set at session.start, interactive sessions only.
+let fetchUsage: ((why: 'auto' | 'press') => Promise<void>) | null = null
+// How often the shared file is read again: a local read, no request.
+const SYNC_MS = 3_000
+
+/** hudlite's rows from this pass's stdin, the last step, the shared usage reading and the transcript ledger. */
 function usageOf(stdin: StdinData, step: StepInfo, now: number): UsageView {
   const scanned = hasScanned()
+  // The newest reading any session or a press brought in, else what this session's last response said.
+  const best = polled ? newest(polled) : null
+  const isPolled = best !== null
+  const polledWindow = (w: { percent: number; resetsAt: number | null } | null) =>
+    w ? { used_percentage: w.percent, resets_at: w.resetsAt === null ? null : w.resetsAt / 1000 } : null
   const win = (w: { used_percentage?: number | null; resets_at?: number | null } | null | undefined, spanMs: number) => {
     if (!w || typeof w.used_percentage !== 'number') return null
     const resetsAt = w.resets_at ? w.resets_at * 1000 : null
@@ -101,8 +114,11 @@ function usageOf(stdin: StdinData, step: StepInfo, now: number): UsageView {
   const allInput = cur ? cur.input_tokens + cur.cache_read_input_tokens + cur.cache_creation_input_tokens : 0
   return {
     now,
-    five: win(stdin.rate_limits?.five_hour, FIVE_HOUR_WINDOW_MS),
-    seven: win(stdin.rate_limits?.seven_day, SEVEN_DAY_WINDOW_MS),
+    five: win(isPolled ? polledWindow(best!.fiveHour) : stdin.rate_limits?.five_hour, FIVE_HOUR_WINDOW_MS),
+    seven: win(isPolled ? polledWindow(best!.sevenDay) : stdin.rate_limits?.seven_day, SEVEN_DAY_WINDOW_MS),
+    reading: isPolled
+      ? { at: best!.at, state: stateOf(best!.at, polled!.failedAt, now) }
+      : { at: step.lastRequestAt, state: stateOf(step.lastRequestAt, polled?.failedAt ?? null, now) },
     scoped: (stdin.model_scoped ?? []).flatMap(w =>
       w.display_name && typeof w.utilization === 'number'
         ? [{ name: w.display_name, percent: w.utilization, resetsAt: w.resets_at && !Number.isNaN(Date.parse(w.resets_at)) ? Date.parse(w.resets_at) : null }]
@@ -214,7 +230,7 @@ async function withUsage($: EngineInterface, ui: Parameters<typeof drawUsage>[0]
   const { Box } = ui
   return (
     <Box flexDirection="column">
-      {drawUsage(ui, view, open, toggle, indent)}
+      {drawUsage(ui, view, open, toggle, () => void fetchUsage?.('press'), indent)}
       {rest}
     </Box>
   )
@@ -422,6 +438,66 @@ export const register: Register = (on, options) => {
       await alert($, gaugesOf(usage), config.contextAlerts, config.usageAlerts)
     }
     $.clock.every(TICK_MS, () => void refresh())
+    // The usage windows every session shares through one file (see usage-poll.ts): this
+    // session's own responses go in, the newest of anyone's comes out, read every few
+    // seconds (a local file, no request). The usage endpoint is fetched every AUTO_FETCH_MS
+    // by one session for all, and on a press.
+    if (e.isInteractive) {
+      const me = await $.session.id()
+      const file = readingPath()
+      let isFetching = false
+      // This session's own last automatic attempt: the interval holds even if the shared file cannot be written.
+      let lastAutoAt = 0
+      const sync = async () => {
+        let reading = parseReading(await $.fs.read(file).catch(() => null))
+        const step = await read($, steps)
+        const own = (await $.session.usage().catch(() => null))?.rateLimits ?? []
+        const window = (kind: string) => {
+          const w = own.find(r => r.kind === kind)
+          const at = w?.resetsAt ? Date.parse(w.resetsAt) : NaN
+          return w ? { percent: w.percentUsed, resetsAt: Number.isNaN(at) ? null : at } : null
+        }
+        if (step.lastRequestAt !== null) {
+          const withOwn = heard(reading, window('five_hour'), window('seven_day'), step.lastRequestAt, me)
+          if (withOwn !== reading) {
+            reading = withOwn
+            await $.fs.write(file, JSON.stringify(reading)).catch(() => {})
+          }
+        }
+        const isChanged = JSON.stringify(reading) !== JSON.stringify(polled)
+        polled = reading
+        if (isChanged) schedule()
+      }
+      fetchUsage = async why => {
+        if (isFetching) return
+        isFetching = true
+        try {
+          let reading = parseReading(await $.fs.read(file).catch(() => null))
+          const now = await $.clock.now()
+          const isAllowed = mayFetch(reading, me, now) && (why === 'press' || (isAutoDue(reading, now) && now - lastAutoAt >= AUTO_FETCH_MS - 1_000))
+          if (isAllowed && why === 'auto') lastAutoAt = now
+          const auth = isAllowed ? await $.session.authorize().catch(() => null) : null
+          if (auth) {
+            reading = claimed(reading, me, now)
+            await $.fs.write(file, JSON.stringify(reading)).catch(() => {})
+            const res = await $.http
+              .fetch(USAGE_URL, { auth: auth.handle, headers: { 'anthropic-beta': 'oauth-2025-04-20', 'content-type': 'application/json' } })
+              .catch(() => null)
+            const at = await $.clock.now()
+            reading = res ? afterFetch(reading, res.status, res.text, at, retryAfterMs(res.headers['retry-after'], at)) : { ...failed(reading, at), lastStatus: 0 }
+            await $.fs.write(file, JSON.stringify(reading)).catch(() => {})
+          }
+          polled = reading
+          schedule()
+        } finally {
+          isFetching = false
+        }
+      }
+      $.clock.every(SYNC_MS, () => void sync().catch(() => {}))
+      // One automatic fetch every AUTO_FETCH_MS, shared: whichever session finds it due.
+      $.clock.every(30_000, () => void fetchUsage?.('auto').catch(() => {}))
+      void sync().catch(() => {})
+    }
     void refresh()
     // Remote Control turns on and off outside the turn's events (`/remote-control`,
     // `--remote-control` connecting): a cheap read of the session file, a redraw on a change.
@@ -564,7 +640,7 @@ export const register: Register = (on, options) => {
 
   on('tool.call', { tool: /^mcp__hudlite__hud_debug$/ }, async () => {
     const text = JSON.stringify(
-      { lines: live.lastLines, stdin: live.lastStdin, bridgeSessionId: live.bridgeSessionId, sessionFile: live.sessionFile, error: live.lastError, refreshMs: live.refreshMs, columns: live.columns, facts: factsSummary() },
+      { lines: live.lastLines, stdin: live.lastStdin, bridgeSessionId: live.bridgeSessionId, sessionFile: live.sessionFile, error: live.lastError, refreshMs: live.refreshMs, columns: live.columns, usagePoll: polled, facts: factsSummary() },
       null,
       2,
     )

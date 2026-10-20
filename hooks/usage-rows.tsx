@@ -22,7 +22,14 @@ const pct = (n: number) => `${Math.round(n)}%`
 /** Green under 50, yellow under 80, red from there. */
 const tone = (n: number | null) => (n === null ? undefined : n >= 80 ? 'red' : n >= 50 ? 'yellow' : 'green')
 
-export function drawUsage(ui: Ui, view: UsageView, open: Expanded, toggle: (which: Exclude<Expanded, null>) => void, indent = 0): RenderElement {
+export function drawUsage(
+  ui: Ui,
+  view: UsageView,
+  open: Expanded,
+  toggle: (which: Exclude<Expanded, null>) => void,
+  refresh: () => void,
+  indent = 0,
+): RenderElement {
   const { Box, Text, Button } = ui
   const sep = <Text dimColor> │ </Text>
 
@@ -54,6 +61,17 @@ export function drawUsage(ui: Ui, view: UsageView, open: Expanded, toggle: (whic
       {gauge('five', '⏱', '5h', view.five, hhmm)}
       {sep}
       {gauge('seven', '📅', '7d', view.seven, dayTime)}
+      {sep}
+      {/* When the 5h / 7d percent was read; a press fetches it now, as /usage does. */}
+      <Button key="hudlite-refresh" plain onPress={refresh}>
+        <Text
+          color={view.reading.state === 'failed' ? 'red' : view.reading.state === 'stale' && view.reading.at !== null ? 'yellow' : undefined}
+          dimColor={view.reading.state === 'ok' || (view.reading.state === 'stale' && view.reading.at === null)}
+        >
+          {view.reading.state === 'failed' ? '⚠ ' : '↺ '}
+          {view.reading.at !== null ? L('updated', { t: hhmm(view.reading.at) }) : view.reading.state === 'failed' ? L('updateFailed') : L('noReading')}
+        </Text>
+      </Button>
       {view.scoped.map(w => (
         <Box key={`scoped-${w.name}`} flexDirection="row">
           {sep}

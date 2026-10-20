@@ -7,6 +7,9 @@ export type LiteLanguage = CanonicalLanguage
 const CODES = 'en | zh-TW | zh-CN | ja | ko | es | fr | de | pt-BR | ru | auto'
 
 const EN = {
+  updated: 'updated {t}',
+  updateFailed: 'update failed',
+  noReading: 'not read yet',
   context: 'Context',
   cache: 'Cache',
   hit: 'hit {p}',
@@ -38,6 +41,9 @@ type Key = keyof typeof EN
 export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
   en: EN,
   'zh-Hant': {
+    updated: '{t} 更新',
+    updateFailed: '更新失敗',
+    noReading: '尚未更新',
     context: '上下文',
     cache: '快取',
     hit: '命中 {p}',
@@ -64,6 +70,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite：/hud 顯示或隱藏（off、on）；above、below 放到輸入框上方或下方；lang 切換語言；detail 開啟詳細面板',
   },
   'zh-Hans': {
+    updated: '{t} 更新',
+    updateFailed: '更新失败',
+    noReading: '尚未更新',
     context: '上下文',
     cache: '缓存',
     hit: '命中 {p}',
@@ -90,6 +99,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite：/hud 显示或隐藏（off、on）；above、below 放到输入框上方或下方；lang 切换语言；detail 打开详情面板',
   },
   ja: {
+    updated: '{t} 更新',
+    updateFailed: '更新失敗',
+    noReading: '未取得',
     context: 'コンテキスト',
     cache: 'キャッシュ',
     hit: 'ヒット {p}',
@@ -116,6 +128,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite：/hud で表示・非表示（off、on）；above、below で入力欄の上・下へ；lang で言語切替；detail で詳細パネル',
   },
   ko: {
+    updated: '{t} 업데이트',
+    updateFailed: '업데이트 실패',
+    noReading: '아직 없음',
     context: '컨텍스트',
     cache: '캐시',
     hit: '적중 {p}',
@@ -142,6 +157,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite: /hud 표시·숨기기(off, on); above, below 입력창 위·아래로; lang 언어 전환; detail 상세 패널',
   },
   es: {
+    updated: 'act. {t}',
+    updateFailed: 'error al actualizar',
+    noReading: 'sin datos',
     context: 'Contexto',
     cache: 'Caché',
     hit: 'acierto {p}',
@@ -168,6 +186,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite: /hud lo muestra u oculta (off, on); above, below lo mueven; lang cambia el idioma; detail abre el panel de detalles',
   },
   fr: {
+    updated: 'màj {t}',
+    updateFailed: 'échec de la màj',
+    noReading: 'pas encore lu',
     context: 'Contexte',
     cache: 'Cache',
     hit: 'succès {p}',
@@ -194,6 +215,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite : /hud l’affiche ou le masque (off, on) ; above, below le déplacent ; lang change la langue ; detail ouvre le panneau de détails',
   },
   de: {
+    updated: 'Stand {t}',
+    updateFailed: 'Aktualisierung fehlgeschlagen',
+    noReading: 'noch nicht gelesen',
     context: 'Kontext',
     cache: 'Cache',
     hit: 'Treffer {p}',
@@ -220,6 +244,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite: /hud ein- oder ausblenden (off, on); above, below verschieben; lang wechselt die Sprache; detail öffnet den Detailbereich',
   },
   'pt-BR': {
+    updated: 'atual. {t}',
+    updateFailed: 'falha ao atualizar',
+    noReading: 'ainda sem dados',
     context: 'Contexto',
     cache: 'Cache',
     hit: 'acerto {p}',
@@ -246,6 +273,9 @@ export const TABLES: Record<LiteLanguage, Record<Key, string>> = {
     description: 'hudlite: /hud mostra ou oculta (off, on); above, below o movem; lang troca o idioma; detail abre o painel de detalhes',
   },
   ru: {
+    updated: 'обновл. {t}',
+    updateFailed: 'ошибка обновления',
+    noReading: 'нет данных',
     context: 'Контекст',
     cache: 'Кэш',
     hit: 'попадания {p}',

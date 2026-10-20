@@ -21,6 +21,7 @@ hudlite is a trimmed version of [hoobnn's hud mod](https://github.com/hoobnn/hoo
 | ⏱ 5h | bar, percent used, ↻ reset time | input / output tokens, estimated cost |
 | 📅 7d | same | same |
 | ✨ per-model weekly limits (e.g. Fable, when you have one) | percent used, ↻ reset time | — |
+| ↺ updated | when the 5h / 7d reading was taken: grey = fresh, yellow = over 5 minutes old, red ⚠ = the fetch failed | click to fetch it now, as `/usage` does |
 | 🧠 Context | bar, percent used | tokens used / window size |
 | 💾 Cache | hit rate, 🟢/🟡/🔴 state and expiry | read / write tokens, TTL, when written |
 | 💰 Session | cost | input / output tokens (incl. subagents) |
@@ -84,7 +85,9 @@ Change them in `/config`, or under `pluginConfigs` in `~/.claude/settings.json`.
 
 ## Where the numbers come from
 
-- **5h / 7d percent, reset times, context percent, session cost**: from Claude Code itself, the same as `/usage` and `/cost`.
+- **5h / 7d percent and reset times**: one newest reading shared by every session. Two sources feed it: the windows every response already carries (no extra request), and a read of Claude Code's usage endpoint (the one `/usage` reads) every 2 minutes, made once for the whole machine however many sessions are open. A 429 backs it off.
+  - That endpoint is rate limited: every 10 seconds and every minute drew 429s in testing, while every 2 minutes (134 reads over 4.5 hours) and every 5 minutes did not; while it refuses, `/usage` may fail too.
+- **Context percent and session cost**: from Claude Code itself, the same as `/cost`.
 - **The 5h / 7d token counts and cost when opened**: hudlite sums this machine's transcripts (`~/.claude/projects/**/*.jsonl`) and prices them at Anthropic's API rates. **Only Claude Code on this machine counts** (not claude.ai on the web, not other computers), so they will not match the percent; a subscription is not billed at these amounts either. A window starts 5 hours / 7 days before it resets.
 - **Input tokens** include cache reads and writes.
 - **Cache expiry**: the last main-thread request's time plus that write's TTL (5m or 1h).

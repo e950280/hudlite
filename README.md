@@ -21,6 +21,7 @@ hudlite 是 [hoobnn 的 hud mod](https://github.com/hoobnn/hoobnn-agent-mods/tre
 | ⏱ 5h | 進度條、使用 %、↻ 重置時間 | 輸入／輸出 token、估算花費 |
 | 📅 7d | 同上 | 同上 |
 | ✨ 按模型的週額度（如 Fable，有才顯示） | 使用 %、↻ 重置時間 | — |
+| ↺ 更新時間 | 5h／7d 讀數是幾點的：灰＝正常、黃＝超過 5 分鐘、紅 ⚠＝查詢失敗 | 點一下立刻查詢（如 `/usage`） |
 | 🧠 上下文 | 進度條、使用 % | 已用 / 視窗大小 token |
 | 💾 快取 | 命中 %、🟢/🟡/🔴 狀態與到期時間 | 讀／寫 token、TTL、寫入時間 |
 | 💰 本 session | 花費 | 輸入／輸出 token（含子代理） |
@@ -84,7 +85,9 @@ claude plugin install hudlite@hudlite
 
 ## 數字從哪來、準不準
 
-- **5h / 7d 的 %、重置時間、上下文 %、本 session 花費**：Claude Code 本身提供，與 `/usage`、`/cost` 一致。
+- **5h / 7d 的 %、重置時間**：所有 session 共用一份最新的讀數。來源有二：每個 session 對話時回應附帶的數字（不額外發請求），以及每 2 分鐘向 Claude Code 的用量服務查一次（與 `/usage` 同一個服務）；這台機器不管開幾個 session，都只查一次。被拒絕（429）時自動退避。
+  - 這個服務有流量限制：實測每 10 秒、每 1 分鐘會被擋，每 2 分鐘（4.5 小時、134 次）與每 5 分鐘都沒問題；被擋時 `/usage` 也可能暫時查不到。
+- **上下文 %、本 session 花費**：Claude Code 本身提供，與 `/cost` 一致。
 - **5h / 7d 點開後的 token 數與金額**：hudlite 掃描本機 `~/.claude/projects/**/*.jsonl` 對話紀錄加總，以 Anthropic API 定價估算。**只含這台機器上的 Claude Code**（不含 claude.ai 網頁、其他電腦），所以和 % 不會對上；訂閱方案實際也不是照這個金額計費。視窗起點 = 重置時間往前 5 小時／7 天。
 - **輸入 token** 包含快取讀取與寫入的 token。
 - **快取到期時間**：最後一次主對話請求的時間 + 該次寫入的 TTL（5m 或 1h）。
